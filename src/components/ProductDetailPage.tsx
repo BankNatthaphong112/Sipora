@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { Product, ProductColor } from '../types';
 import { useShop } from '../context/ShopContext';
+import { useAuth } from '../context/AuthContext';
 import { ProductCard } from './ProductCard';
 
 interface ProductDetailPageProps {
@@ -32,6 +33,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   isModal = false,
   onClose 
 }) => {
+  const { isAuthenticated, openLoginModal } = useAuth();
   const { 
     addToCart, 
     toggleWishlist, 
@@ -41,6 +43,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     products, 
     setSelectedProduct,
     language,
+    showToast,
     t
   } = useShop();
 
@@ -90,11 +93,21 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   ];
 
   const handleAddToCart = () => {
+    if (!isAuthenticated) {
+      showToast(t('loginRequiredForCart'));
+      openLoginModal();
+      return;
+    }
     addToCart(product, selectedColor, selectedSize, quantity, customEngraving.trim() || undefined);
     if (isModal && onClose) onClose();
   };
 
   const handleBuyNow = () => {
+    if (!isAuthenticated) {
+      showToast(t('loginRequiredForCart'));
+      openLoginModal();
+      return;
+    }
     addToCart(product, selectedColor, selectedSize, quantity, customEngraving.trim() || undefined);
     if (isModal && onClose) onClose();
     setIsCheckoutOpen(true);

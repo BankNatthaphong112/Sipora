@@ -35,7 +35,7 @@ export const CheckoutModal: React.FC = () => {
     t
   } = useShop();
 
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, openLoginModal } = useAuth();
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
@@ -51,10 +51,16 @@ export const CheckoutModal: React.FC = () => {
   const [postalCode, setPostalCode] = useState('');
   const [notes, setNotes] = useState('');
 
-  // Auto-populate when checkout opens or user changes
+  // Auto-populate when checkout opens or user changes, or redirect to login if not authenticated
   useEffect(() => {
     if (isCheckoutOpen) {
-      if (isAuthenticated && user) {
+      if (!isAuthenticated) {
+        setIsCheckoutOpen(false);
+        showToast(t('loginRequiredForCart'));
+        openLoginModal();
+        return;
+      }
+      if (user) {
         setFullName(user.name || '');
         setEmail(user.email || '');
         setPhone(user.phone || '089-123-4567');
@@ -65,15 +71,6 @@ export const CheckoutModal: React.FC = () => {
           setProvince(user.savedAddress.province || 'กรุงเทพมหานคร');
           setPostalCode(user.savedAddress.postalCode || '10110');
         }
-      } else if (!fullName) {
-        setFullName('ณัฐพงษ์ บุญเรือง');
-        setPhone('089-123-4567');
-        setEmail('banknatthaphong076@gmail.com');
-        setAddress('99/123 ถนนสุขุมวิท 71 พระโขนง');
-        setSubDistrict('พระโขนงเหนือ');
-        setDistrict('วัฒนา');
-        setProvince('กรุงเทพมหานคร');
-        setPostalCode('10110');
       }
     }
   }, [isCheckoutOpen, isAuthenticated, user]);

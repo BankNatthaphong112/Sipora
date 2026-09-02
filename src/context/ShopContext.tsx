@@ -3,6 +3,7 @@ import { Product, ProductColor, CartItem, Order, JournalArticle, ViewMode } from
 import { PRODUCTS } from '../data/products';
 import { JOURNAL_ARTICLES } from '../data/journal';
 import { TRANSLATIONS, Language, getTranslation } from '../data/translations';
+import { useAuth } from './AuthContext';
 
 interface FilterOptions {
   category: string;
@@ -135,6 +136,7 @@ const INITIAL_ORDERS: Order[] = [
 ];
 
 export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, openLoginModal } = useAuth();
   const [products] = useState<Product[]>(PRODUCTS);
   const [viewMode, setViewMode] = useState<ViewMode>('home');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -154,9 +156,9 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [wishlist, setWishlist] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('sipora_wishlist');
-      return saved ? JSON.parse(saved) : ['sipora-classic-500', 'sipora-premium-900'];
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return ['sipora-classic-500'];
+      return [];
     }
   });
 
@@ -280,6 +282,12 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     quantity = 1,
     engraving?: string
   ) => {
+    if (!isAuthenticated) {
+      showToast(t('loginRequiredForCart'));
+      openLoginModal();
+      return;
+    }
+
     const chosenSize = size || product.sizes[0] || 'Standard';
     const itemId = `${product.id}-${color.name}-${chosenSize}${engraving ? `-${engraving}` : ''}`;
     
@@ -304,13 +312,13 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ];
     });
 
-    showToast(`เพิ่ม "${product.name}" ลงในถุงช้อปปิ้งแล้ว`);
+    showToast(language === 'th' ? `เพิ่ม "${product.nameTh || product.name}" ลงในถุงช้อปปิ้งแล้ว` : `Added "${product.name}" to your shopping bag`);
     setIsCartOpen(true);
   };
 
   const removeFromCart = (cartItemId: string) => {
     setCart(prev => prev.filter(item => item.id !== cartItemId));
-    showToast('ลบสินค้าออกจากถุงแล้ว');
+    showToast(language === 'th' ? 'ลบสินค้าออกจากถุงแล้ว' : 'Removed item from bag');
   };
 
   const updateCartQuantity = (cartItemId: string, quantity: number) => {
@@ -328,13 +336,19 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const toggleWishlist = (productId: string) => {
+    if (!isAuthenticated) {
+      showToast(t('loginRequiredForWishlist'));
+      openLoginModal();
+      return;
+    }
+
     setWishlist(prev => {
       const exists = prev.includes(productId);
       if (exists) {
-        showToast('ลบออกจากรายการโปรดแล้ว');
+        showToast(language === 'th' ? 'ลบออกจากรายการโปรดแล้ว' : 'Removed from wishlist');
         return prev.filter(id => id !== productId);
       } else {
-        showToast('บันทึกในรายการโปรดแล้ว ❤️');
+        showToast(language === 'th' ? 'บันทึกในรายการโปรดแล้ว ❤️' : 'Saved to wishlist ❤️');
         return [...prev, productId];
       }
     });

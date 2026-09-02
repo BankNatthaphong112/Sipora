@@ -194,6 +194,8 @@ export const TRANSLATIONS = {
     toastWishlistRemoved: 'ลบออกจากรายการโปรดแล้ว',
     toastCouponSuccess: 'ใช้โค้ดส่วนลดสำเร็จ! ประหยัด {percent}%',
     toastCouponError: 'โค้ดส่วนลดไม่ถูกต้องหรือหมดอายุ',
+    loginRequiredForCart: 'กรุณาเข้าสู่ระบบก่อนเลือกซื้อสินค้าหรือเพิ่มลงในตะกร้า',
+    loginRequiredForWishlist: 'กรุณาเข้าสู่ระบบก่อนบันทึกสินค้าในรายการโปรด (Wishlist)',
 
     // Authentication & User Profile
     loginTitle: 'ยินดีต้อนรับกลับ',
@@ -428,6 +430,8 @@ export const TRANSLATIONS = {
     toastWishlistRemoved: 'Removed from wishlist',
     toastCouponSuccess: 'Promo code applied! Saved {percent}%',
     toastCouponError: 'Invalid or expired promo code',
+    loginRequiredForCart: 'Please sign in to add items to cart or proceed to purchase.',
+    loginRequiredForWishlist: 'Please sign in to save items to your wishlist.',
 
     // Authentication & User Profile
     loginTitle: 'Welcome Back',
