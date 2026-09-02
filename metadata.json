@@ -1,0 +1,6 @@
+{
+  "name": "Sipora - Premium Insulated Drinkware",
+  "description": "Modern, premium lifestyle e-commerce store for Sipora insulated tumblers and thermal bottles. Keep It Hot. Keep It Cold.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

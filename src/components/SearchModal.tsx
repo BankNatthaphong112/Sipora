@@ -1,0 +1,174 @@
+import React, { useState, useMemo } from 'react';
+import { Search, X, TrendingUp, Sparkles, ArrowRight } from 'lucide-react';
+import { useShop } from '../context/ShopContext';
+import { CATEGORIES } from '../data/products';
+
+export const SearchModal: React.FC = () => {
+  const { 
+    isSearchOpen, 
+    setIsSearchOpen, 
+    searchQuery, 
+    setSearchQuery, 
+    products, 
+    setSelectedProduct, 
+    setViewMode, 
+    setFilters 
+  } = useShop();
+
+  const [localQuery, setLocalQuery] = useState(searchQuery);
+
+  const searchResults = useMemo(() => {
+    if (!localQuery.trim()) return [];
+    const q = localQuery.toLowerCase();
+    return products.filter(p => 
+      p.name.toLowerCase().includes(q) ||
+      p.nameTh.toLowerCase().includes(q) ||
+      p.categoryName.toLowerCase().includes(q) ||
+      p.colors.some(c => c.name.toLowerCase().includes(q) || c.nameTh.includes(q))
+    ).slice(0, 6);
+  }, [localQuery, products]);
+
+  if (!isSearchOpen) return null;
+
+  const handleSelectProduct = (product: any) => {
+    setSelectedProduct(product);
+    setViewMode('product-detail');
+    setIsSearchOpen(false);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSearchQuery(localQuery);
+    setViewMode('shop');
+    setIsSearchOpen(false);
+  };
+
+  const trendingTags = ['All-Day Straw 900ml', 'Morning Cup', 'Sage Green', 'Travel Mug', 'Matte Charcoal'];
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-start justify-center p-4 pt-16 sm:pt-24 animate-fade-in">
+      <div className="relative w-full max-w-2xl bg-white rounded-3xl overflow-hidden shadow-2xl border border-gray-100">
+        
+        {/* Search Bar Input */}
+        <form onSubmit={handleSearchSubmit} className="p-4 sm:p-5 border-b border-gray-200 flex items-center gap-3">
+          <Search className="w-5 h-5 text-gray-400 shrink-0" />
+          <input
+            type="text"
+            autoFocus
+            value={localQuery}
+            onChange={(e) => setLocalQuery(e.target.value)}
+            placeholder="Search tumblers, bottles, mugs, colors (e.g. 900ml, Sage Green)..."
+            className="w-full text-sm sm:text-base text-gray-900 placeholder-gray-400 focus:outline-none"
+          />
+          {localQuery && (
+            <button
+              type="button"
+              onClick={() => setLocalQuery('')}
+              className="p-1 text-gray-400 hover:text-black rounded-lg"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setIsSearchOpen(false)}
+            className="text-xs font-bold text-gray-500 hover:text-black uppercase tracking-wider pl-2 border-l border-gray-200 cursor-pointer"
+          >
+            ESC
+          </button>
+        </form>
+
+        {/* Results / Suggestions */}
+        <div className="p-5 sm:p-6 max-h-[60vh] overflow-y-auto space-y-6">
+          
+          {searchResults.length > 0 ? (
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">
+                Matching Products ({searchResults.length})
+              </p>
+              <div className="space-y-2.5">
+                {searchResults.map((p) => (
+                  <div
+                    key={p.id}
+                    onClick={() => handleSelectProduct(p)}
+                    className="p-3 rounded-2xl hover:bg-[#FAF9F6] border border-transparent hover:border-gray-200 transition-colors flex items-center justify-between gap-3 cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-gray-50 p-1 shrink-0 flex items-center justify-center">
+                        <img src={p.colors[0].image} alt="" className="w-full h-full object-contain" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs sm:text-sm font-bold text-[#1A2530] group-hover:text-[#7A8B7B]">
+                          {p.name}
+                        </h4>
+                        <p className="text-[11px] text-gray-400">{p.nameTh} • {p.capacity}</p>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <span className="text-xs font-bold font-serif text-[#1A2530]">฿{p.price.toLocaleString()}</span>
+                      <span className="text-[10px] text-gray-400 block">{p.hotHours > 0 ? `Hot ${p.hotHours}h` : ''} {p.coldHours > 0 ? `Cold ${p.coldHours}h` : ''}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : localQuery.trim() ? (
+            <div className="text-center py-8">
+              <p className="text-xs text-gray-500">No matching products found for "{localQuery}"</p>
+            </div>
+          ) : (
+            <>
+              {/* Trending Searches */}
+              <div>
+                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">
+                  <TrendingUp className="w-3.5 h-3.5 text-[#A85A48]" />
+                  <span>Trending Searches</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {trendingTags.map((tag) => (
+                    <button
+                      key={tag}
+                      onClick={() => {
+                        setLocalQuery(tag);
+                        setSearchQuery(tag);
+                      }}
+                      className="px-3.5 py-1.5 rounded-full bg-[#FAF9F6] hover:bg-gray-100 border border-gray-200 text-xs text-gray-700 font-medium cursor-pointer"
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Popular Categories */}
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-gray-400 block mb-3">
+                  Shop by Category
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  {CATEGORIES.slice(0, 4).map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => {
+                        setFilters(prev => ({ ...prev, category: cat.id }));
+                        setViewMode('shop');
+                        setIsSearchOpen(false);
+                      }}
+                      className="p-3 rounded-2xl bg-[#FAF9F6] border border-gray-200 hover:border-gray-400 text-left cursor-pointer transition-colors"
+                    >
+                      <p className="text-xs font-bold text-gray-900">{cat.name}</p>
+                      <p className="text-[10px] text-gray-400">{cat.count}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+        </div>
+
+      </div>
+    </div>
+  );
+};
