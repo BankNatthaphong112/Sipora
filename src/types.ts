@@ -110,3 +110,25 @@ export interface JournalArticle {
 }
 
 export type ViewMode = 'home' | 'shop' | 'product-detail' | 'journal' | 'about' | 'track-order' | 'sustainability';
+
+export interface UserAddress {
+  fullName: string;
+  phone: string;
+  address: string;
+  subDistrict: string;
+  district: string;
+  province: string;
+  postalCode: string;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  memberTier: 'Classic' | 'Silver' | 'Gold' | 'VIP';
+  createdAt: string;
+  savedAddress?: UserAddress;
+}
+
+export type AuthModalMode = 'login' | 'register' | 'forgot-password';

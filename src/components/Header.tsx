@@ -3,15 +3,19 @@ import {
   Search, 
   ShoppingBag, 
   Heart, 
-  User, 
+  User as UserIcon, 
   Menu, 
   X, 
   ChevronRight, 
   Truck, 
   ShieldCheck, 
-  Globe
+  Globe,
+  LogOut,
+  UserCheck
 } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
+import { useAuth } from '../context/AuthContext';
+import { UserMenu } from './UserMenu';
 
 export const Header: React.FC = () => {
   const { 
@@ -26,12 +30,22 @@ export const Header: React.FC = () => {
     setFilters,
     language,
     setLanguage,
-    t
+    t,
+    showToast
   } = useShop();
+
+  const {
+    user,
+    isAuthenticated,
+    openLoginModal,
+    openRegisterModal,
+    setIsAccountModalOpen,
+    logout
+  } = useAuth();
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -203,44 +217,41 @@ export const Header: React.FC = () => {
             <div className="relative">
               <button
                 id="account-btn"
-                onClick={() => setAccountMenuOpen(!accountMenuOpen)}
-                className="p-1 text-[#1A1A1A] hover:text-[#7B8C7D] transition-colors cursor-pointer"
-                title={t('account')}
-                aria-label={t('account')}
+                onClick={() => {
+                  if (isAuthenticated) {
+                    setUserMenuOpen(!userMenuOpen);
+                  } else {
+                    openLoginModal();
+                  }
+                }}
+                className={`p-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
+                  isAuthenticated 
+                    ? 'bg-[#1A1A1A] text-white px-2.5 py-1 text-xs shadow-2xs hover:bg-black' 
+                    : 'text-[#1A1A1A] hover:text-[#7B8C7D] hover:bg-gray-100'
+                }`}
+                title={isAuthenticated ? user?.name : t('signInBtn')}
+                aria-label={isAuthenticated ? user?.name : t('signInBtn')}
               >
-                <User className="w-5 h-5" />
+                {isAuthenticated ? (
+                  <>
+                    <div className="w-4 h-4 rounded-full bg-white/20 text-white flex items-center justify-center text-[10px] font-bold">
+                      {user?.name?.[0] || 'U'}
+                    </div>
+                    <span className="hidden xl:inline text-[11px] font-bold tracking-wider max-w-[90px] truncate">
+                      {user?.name?.split(' ')[0]}
+                    </span>
+                  </>
+                ) : (
+                  <UserIcon className="w-5 h-5" />
+                )}
               </button>
 
-              {accountMenuOpen && (
-                <div 
-                  className="absolute right-0 mt-2 w-56 bg-[#FDFCF9] rounded-xl shadow-xl border border-[#EEECE6] py-2.5 z-50 animate-fade-in"
-                  onMouseLeave={() => setAccountMenuOpen(false)}
-                >
-                  <div className="px-4 py-2 border-b border-[#EEECE6]">
-                    <p className="text-xs font-bold text-[#1A1A1A] tracking-wider uppercase">Sipora Club</p>
-                    <p className="text-[11px] text-gray-500">Premium Insulated Drinkware</p>
-                  </div>
-                  <button 
-                    onClick={() => {
-                      setIsTrackingOpen(true);
-                      setAccountMenuOpen(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
-                  >
-                    <Truck className="w-3.5 h-3.5 text-gray-500" />
-                    <span>{t('navTrackOrder')}</span>
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setIsAboutOpen(true);
-                      setAccountMenuOpen(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5 text-gray-500" />
-                    <span>{t('lifetimeWarranty')}</span>
-                  </button>
-                </div>
+              {/* User Dropdown Menu for Logged-in Users */}
+              {isAuthenticated && (
+                <UserMenu 
+                  isOpen={userMenuOpen} 
+                  onClose={() => setUserMenuOpen(false)} 
+                />
               )}
             </div>
 
@@ -339,7 +350,7 @@ export const Header: React.FC = () => {
                   setIsTrackingOpen(true);
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left py-2.5 text-base font-semibold text-gray-900 cursor-pointer flex items-center justify-between"
+                className="block w-full text-left py-2.5 text-base font-semibold text-gray-900 border-b border-gray-100 cursor-pointer flex items-center justify-between"
               >
                 <span className="flex items-center gap-2">
                   <Truck className="w-4 h-4 text-[#7A8B7B]" />
@@ -347,8 +358,60 @@ export const Header: React.FC = () => {
                 </span>
                 <ChevronRight className="w-4 h-4 text-gray-400" />
               </button>
+
+              {/* Mobile Account Actions */}
+              <div className="pt-2 pb-1 border-b border-gray-100">
+                <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
+                  {t('account')}
+                </div>
+                {isAuthenticated && user ? (
+                  <div className="space-y-2">
+                    <div className="p-3 bg-[#FAF9F6] rounded-xl flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-bold text-[#1A1A1A]">{user.name}</p>
+                        <p className="text-xs text-gray-500">{user.email}</p>
+                      </div>
+                      <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-[#7B8C7D]/20 text-[#5C6E5E]">
+                        {user.memberTier}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setIsAccountModalOpen(true);
+                        setMobileMenuOpen(false);
+                      }}
+                      className="w-full text-left py-2 text-sm font-semibold text-gray-800 flex items-center justify-between"
+                    >
+                      <span>{t('myAccount')}</span>
+                      <ChevronRight className="w-4 h-4 text-gray-400" />
+                    </button>
+                    <button
+                      onClick={async () => {
+                        setMobileMenuOpen(false);
+                        await logout();
+                        showToast(t('loggedOutSuccess'));
+                      }}
+                      className="w-full text-left py-2 text-sm font-semibold text-red-600 flex items-center gap-2"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>{t('logout')}</span>
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      openLoginModal();
+                    }}
+                    className="w-full py-3 px-4 rounded-xl bg-[#1A1A1A] text-white text-xs font-bold tracking-wider uppercase flex items-center justify-center gap-2 shadow-sm"
+                  >
+                    <UserIcon className="w-4 h-4" />
+                    <span>{t('signInBtn')} / {t('createAccountBtn')}</span>
+                  </button>
+                )}
+              </div>
               
-              <div className="pt-2 flex items-center justify-between border-t border-gray-100 text-sm">
+              <div className="pt-2 flex items-center justify-between text-sm">
                 <span className="text-gray-500">{t('switchLanguage')}</span>
                 <button 
                   onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}

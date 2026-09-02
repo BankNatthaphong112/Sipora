@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useShop } from '../context/ShopContext';
+import { useAuth } from '../context/AuthContext';
 import { Order } from '../types';
 
 export const CheckoutModal: React.FC = () => {
@@ -34,19 +35,48 @@ export const CheckoutModal: React.FC = () => {
     t
   } = useShop();
 
+  const { user, isAuthenticated } = useAuth();
+
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
 
   // Form states
-  const [fullName, setFullName] = useState('ณัฐพงษ์ บุญเรือง');
-  const [phone, setPhone] = useState('089-123-4567');
-  const [email, setEmail] = useState('banknatthaphong076@gmail.com');
-  const [address, setAddress] = useState('99/123 ถนนสุขุมวิท 71 พระโขนง');
-  const [subDistrict, setSubDistrict] = useState('พระโขนงเหนือ');
-  const [district, setDistrict] = useState('วัฒนา');
-  const [province, setProvince] = useState('กรุงเทพมหานคร');
-  const [postalCode, setPostalCode] = useState('10110');
-  const [notes, setNotes] = useState('กรุณาโทรแจ้งก่อนส่ง');
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [address, setAddress] = useState('');
+  const [subDistrict, setSubDistrict] = useState('');
+  const [district, setDistrict] = useState('');
+  const [province, setProvince] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [notes, setNotes] = useState('');
+
+  // Auto-populate when checkout opens or user changes
+  useEffect(() => {
+    if (isCheckoutOpen) {
+      if (isAuthenticated && user) {
+        setFullName(user.name || '');
+        setEmail(user.email || '');
+        setPhone(user.phone || '089-123-4567');
+        if (user.savedAddress) {
+          setAddress(user.savedAddress.address || '99/123 ถนนสุขุมวิท 71 พระโขนง');
+          setSubDistrict(user.savedAddress.subDistrict || 'พระโขนงเหนือ');
+          setDistrict(user.savedAddress.district || 'วัฒนา');
+          setProvince(user.savedAddress.province || 'กรุงเทพมหานคร');
+          setPostalCode(user.savedAddress.postalCode || '10110');
+        }
+      } else if (!fullName) {
+        setFullName('ณัฐพงษ์ บุญเรือง');
+        setPhone('089-123-4567');
+        setEmail('banknatthaphong076@gmail.com');
+        setAddress('99/123 ถนนสุขุมวิท 71 พระโขนง');
+        setSubDistrict('พระโขนงเหนือ');
+        setDistrict('วัฒนา');
+        setProvince('กรุงเทพมหานคร');
+        setPostalCode('10110');
+      }
+    }
+  }, [isCheckoutOpen, isAuthenticated, user]);
 
   // Shipping & Payment
   const [shippingMethod, setShippingMethod] = useState<'standard' | 'express'>('standard');

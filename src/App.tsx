@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { ShopProvider, useShop } from './context/ShopContext';
+import { AuthProvider } from './context/AuthContext';
 import { Header } from './components/Header';
 import { HeroSection } from './components/HeroSection';
 import { FeaturedCategories } from './components/FeaturedCategories';
@@ -23,6 +24,8 @@ import { SearchModal } from './components/SearchModal';
 import { OrderTrackingModal } from './components/OrderTrackingModal';
 import { AboutModal } from './components/AboutModal';
 import { SustainabilityModal } from './components/SustainabilityModal';
+import { AuthModal } from './components/AuthModal';
+import { AccountProfileModal } from './components/AccountProfileModal';
 import { X } from 'lucide-react';
 
 const AppContent: React.FC = () => {
@@ -88,6 +91,8 @@ const AppContent: React.FC = () => {
       <OrderTrackingModal />
       <AboutModal />
       <SustainabilityModal />
+      <AuthModal />
+      <AccountProfileModal />
 
       {/* Quick View Dialog */}
       {quickViewProduct && (
@@ -115,7 +120,7 @@ const AppContent: React.FC = () => {
           <span className="flex-1">{toastMessage}</span>
           <button 
             onClick={hideToast}
-            className="text-gray-400 hover:text-white p-1"
+            className="text-gray-400 hover:text-white p-1 cursor-pointer"
           >
             ✕
           </button>
@@ -128,8 +133,10 @@ const AppContent: React.FC = () => {
 
 export default function App() {
   return (
-    <ShopProvider>
-      <AppContent />
-    </ShopProvider>
+    <AuthProvider>
+      <ShopProvider>
+        <AppContent />
+      </ShopProvider>
+    </AuthProvider>
   );
 }
